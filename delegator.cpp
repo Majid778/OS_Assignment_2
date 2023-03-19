@@ -11,58 +11,106 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <iostream>
+#include <cstdlib>
+#include <fstream>
+#include <sstream>
 
-//struct primeInfo{
+using namespace std;
+
     pid_t rootPID;
-    int lower_bound;
-    int upper_bound;
+    int low_bound;
+    int up_bound;
     char* mode;
     int numNodes;
-//};
+
 
 int main(int argc, char* argv[]) {
      printf("enter delegator\n");
-    // printf("%s\n", argv[0]);
-    // printf("%s\n", argv[1]);
-    // printf("%s\n", argv[2]);
-    // printf("%s\n", argv[3]);
-    rootPID = getppid();
-    upper_bound = std::stoi(argv[0]); 
-    lower_bound = std::stoi(argv[1]);
-    mode = argv[2];
-    numNodes = std::stoi(argv[3]);
+    int workerSizes[numNodes];
 
-    //pipes to pass sorted records and time data respectively
-    char* pipeName[numNodes];
-    char* timePipe[numNodes];
-    
-    //create names for pipes for each sorter to pass its sorted records and time data
-    //ith pipe is for ith sorter
-    // int pipeBuffSize=512;
-    // for (int i=0;i<numNodes;i++){
-    //     // printf("here\n");
-    //     // pipeName[i] = malloc(pipeBuffSize*sizeof(char));
-    //     // timePipe[i] = malloc(pipeBuffSize*sizeof(char));
-        
-    //     strcpy(pipeName[i],"/tmp/pipe");
-    //     strcpy(timePipe[i],"/tmp/timePipe");
-        
-    //     char pipeNum[7];
-    //     sprintf(pipeNum,"%d",i);
-    //     strcat(pipeName[i],pipeNum);
-    //     strcat(timePipe[i],pipeNum);
-    // }
+    rootPID = getppid();
+    up_bound = stoi(argv[0]); 
+    low_bound = stoi(argv[1]);
+    mode = argv[2];
+    numNodes = stoi(argv[3]);
+
+     char* pipeName[numNodes];
+     char* timePipe[numNodes];
+
+
+    char buffer[] = "pipe1";
+    for (int i = 1; i <= numNodes; i++) {
+        buffer[4] = '0' + i;
+        pipeName[i] = buffer;
+        cout<<pipeName[i]<<endl;
+    }
+    char buffer[] = "time1";
+    for (int i = 1; i <= numNodes; i++) {
+        buffer[4] = '0' + i;
+        timePipe[i] = buffer;
+        cout<<timePipe[i]<<endl;
+    }
+
     //create the named pipes
-    char buf1[50];
     for (int i=0;i<numNodes;i++){
-        printf("enter loop\n");
-        sprintf(buf1,"%d",i);
-        printf("past sprint\n");
-        char * myfifo = "myfifo"; 
-        printf("past char* myfifo\n");
-        strcat(myfifo,buf1);
-        printf("past buf1\n");
-        // mkfifo(pipeName[i],0777);
-        // mkfifo(timePipe[i],0777);
+        mkfifo(pipeName[i],0777);
+        mkfifo(timePipe[i],0777);
+    }
+
+    int diff = (up_bound - low_bound) + 1;
+    int remainder = diff % numNodes;
+    int baseSize = (diff - remainder) / numNodes;
+
+    for (int i = 0; i < numNodes; i++)
+    {
+        if (i < remainder)
+        {
+            workerSizes[i] = baseSize + 1;
+        }
+        else
+        {
+            workerSizes[i] = baseSize;
+        }
+    }
+
+    int lb = low_bound;
+    int ub = lb + workerSizes[0] - 1;
+
+
+
+    char upper[50];
+    char lower[50];
+    char numofnodes[50];
+    sprintf(upper, "%d", ub);
+    sprintf(lower, "%d", lb);
+    sprintf(numofnodes, "%d", numNodes);
+
+
+    for (int i=0;i<numNodes;i++){
+
+        if (fork()==0){
+            if(i%2){
+
+                if(execlp("./prime1",lower,upper,NULL)==-1){
+                    int e=errno;
+                    printf("ERROR %d\n",e);
+                    printf("odd sorter not executing\n");
+                };
+            }else{
+
+                if(execlp("./prime2",lower,upper,NULL)==-1){
+                    int e=errno;
+                    printf("ERROR %d\n",e);
+                    printf("even sorter not executing\n");
+                };
+
+            }
+
+            exit(0);
+        }
+
+        lb = lb + workerSizes[i];
+        ub = ub + workerSizes[i+1];
     }
 }
