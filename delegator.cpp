@@ -23,7 +23,7 @@ using namespace std;
     int up_bound;
     char* mode;
     int numNodes;
-
+    int startindex;
 
 int main(int argc, char* argv[]) {
      printf("enter delegator\n");
@@ -34,23 +34,30 @@ int main(int argc, char* argv[]) {
     low_bound = stoi(argv[1]);
     mode = argv[2];
     numNodes = stoi(argv[3]);
+    startindex = stoi(argv[4]);
+    cout<<startindex<<endl;
 
-     char* pipeName[numNodes];
-     char* timePipe[numNodes];
+    char* pipeName[numNodes];
+    char* timePipe[numNodes];
 
-
-    char buffer[] = "pipe1";
-    for (int i = 1; i <= numNodes; i++) {
-        buffer[4] = '0' + i;
-        pipeName[i] = buffer;
-        cout<<pipeName[i]<<endl;
+     char buffer1[50];
+    string buf;
+    for (int i = startindex*numNodes + 1; i <= (startindex*numNodes + numNodes-1); i++) {
+        buf = "pipe" +  to_string(i);
+        strcpy(buffer1, buf.c_str());
+        // buffer1[4] = '0' + i;
+         pipeName[i] = buffer1;
+        cout<<"pipe: "<<pipeName[i]<<endl;
     }
-    char buffer[] = "time1";
-    for (int i = 1; i <= numNodes; i++) {
-        buffer[4] = '0' + i;
-        timePipe[i] = buffer;
-        cout<<timePipe[i]<<endl;
+     char buffer2[50];
+    for (int i = startindex*numNodes + 1; i <= (startindex*numNodes + numNodes-1); i++) {
+        buf = "time" +  to_string(i);
+        strcpy(buffer2, buf.c_str());
+        // buffer2[4] = '0' + i;
+         timePipe[i] = buffer2;
+        cout<<"time: "<<timePipe[i]<<endl;
     }
+    
 
     //create the named pipes
     for (int i=0;i<numNodes;i++){

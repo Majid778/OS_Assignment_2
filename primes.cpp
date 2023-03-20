@@ -107,6 +107,7 @@ int main(int argc, char *argv[])
     char buffer1[50];
     char buffer2[50];
     char buffer3[50];
+    char buffer4[50];
 
     sprintf(buffer1, "%d", ub);
     sprintf(buffer2, "%d", lb);
@@ -115,6 +116,7 @@ int main(int argc, char *argv[])
     for (int i = 0; i < numOfNodes; i++)
     {
 
+        sprintf(buffer4, "%d", i);
         int delegatorID = fork();
 
         // check for fork failed
@@ -130,14 +132,14 @@ int main(int argc, char *argv[])
             cout << buffer3<< endl;
             cout << option << endl;
             if (option == 'e') {
-                if (execlp("./delegator", buffer1, buffer2, "e", buffer3, NULL) == -1)
+                if (execlp("./delegator", buffer1, buffer2, "e", buffer3, buffer4, NULL) == -1)
                 {
                     int e = errno;
                     printf("ERROR %d\n", e);
                 };
             }
             else if (option == 'r') {
-                if (execlp("./delegator", buffer1, buffer2, "r", buffer3, NULL) == -1)
+                if (execlp("./delegator", buffer1, buffer2, "r", buffer3, buffer4, NULL) == -1)
                 {
                     int e = errno;
                     printf("ERROR %d\n", e);
